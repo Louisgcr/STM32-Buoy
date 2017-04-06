@@ -11,6 +11,7 @@ This project mainly for the STM32F103 family of micro-controllers (MCU), the fir
 
 ## Installation
 We are using Eclipse to develop the firmware
+
 The tool chain in use is GNU Tool for ARM Embedded Processors [arm-none-eabi-gcc]
 
 A rough outline of the process flow:
