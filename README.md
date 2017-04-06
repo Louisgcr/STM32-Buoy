@@ -3,13 +3,13 @@ This project mainly for the STM32F103 family of micro-controllers (MCU), the fir
 1. Receive speed information from the SBC and generate PPM signal for controling brushless motors
 2. Read IMU sensor,perform AHRS calculation using Madgwick algorithm and send it back to the SBC
 
-##Prerequisites
+## Prerequisites
 1.Eclipse 
 2.GCC tool chain (follow link in installation)
 3.ST-Link v2 in-circuit debugger and programmer
 4.Patience not to kill me for poor documentation
 
-##Installation
+## Installation
 We are using Eclipse to develop the firmware
 The tool chain in use is GNU Tool for ARM Embedded Processors [arm-none-eabi-gcc]
 
@@ -21,10 +21,10 @@ A rough outline of the process flow:
 Check out the link below for detailed steps on setuping the enviorment and flashing the MCU
 https://www.overleaf.com/read/xykrnzhmsymq
 
-##History
+## History
 Version 0.1 Basic skeleton of firmware for STM32F103 Family only
 
-##Authors
+## Authors
 1. Louis Goh - Initial Work
 
 ## License
@@ -36,9 +36,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-##Acknowledgment
-
-Kris Winer for his library on Madgwick Algorithm
-Simpyl Embedded for a cool implementation of the ring buffer
-Justin Wang for the i2c implementation
-And to whoever I have missed out
+## Acknowledgment
+1. Kris Winer for his library on Madgwick Algorithm
+2. Simpyl Embedded for a cool implementation of the ring buffer
+3. Justin Wang for the i2c implementation
+4. And to whoever I have missed out
