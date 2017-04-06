@@ -1,0 +1,8 @@
+Debug/
+ldscripts/
+system/
+.DS_Store
+.cproject
+.project
+.settings/
+
