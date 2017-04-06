@@ -4,10 +4,10 @@ This project mainly for the STM32F103 family of micro-controllers (MCU), the fir
 2. Read IMU sensor,perform AHRS calculation using Madgwick algorithm and send it back to the SBC
 
 ## Prerequisites
-1.Eclipse 
-2.GCC tool chain (follow link in installation)
-3.ST-Link v2 in-circuit debugger and programmer
-4.Patience not to kill me for poor documentation
+1. Eclipse 
+2. GCC tool chain (follow link in installation)
+3. ST-Link v2 in-circuit debugger and programmer
+4. Patience not to kill me for poor documentation
 
 ## Installation
 We are using Eclipse to develop the firmware
