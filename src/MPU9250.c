@@ -23,9 +23,9 @@ void calibrate_sensor(void){
 	uint16_t  accelsensitivity = acc_sense;  // = 16384 LSB/g
 
 	//Edit these after obtaining calibration values
-	magbias[0] = 131.076508;
-	magbias[1] = 64.573318;
-	magbias[2] = 88.136002;
+	magbias[0] = 302.282166;
+	magbias[1] = 560.947388;
+	magbias[2] = -251.464035;
 
 	//Setting reset pin to 1
 	I2C_Master_WriteByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x80);
@@ -190,13 +190,13 @@ void read_acc(void){
 	temp = ((int16_t)(buf[4]<<8)| buf[5]);
 	acc_z = (float)temp*aRes - accelBias[2];
 
+	/*
 	//Debugging lines
-	//  uint8_t check[100];
-	//  memset(check,'\0', sizeof(check));
-	//  sprintf(check, "buf[0]: %u,buf[1]: %u, \r\n", buf[0], buf[1]);
-	//  //sprintf(check, "acc_x: %f acc_y: %f acc_z: %f \r\n", acc_x, acc_y, acc_z);
-	//  SendData(check, sizeof(check));
-
+	uint8_t check[100];
+	memset(check,'\0', sizeof(check));
+	sprintf(check, "acc_x: %f acc_y: %f acc_z: %f \r\n", acc_x, acc_y, acc_z);
+	SendData(check, sizeof(check));
+	*/
 	return;
 }
 
@@ -215,11 +215,13 @@ void read_mag(void){
 			mag_y = (float)temp*mRes*magCalibration[1] - magbias[1];
 			temp = ((int16_t)(buf[5] << 8) | buf[4]);
 			mag_z = (float)temp*mRes*magCalibration[2] - magbias[2];
-			//Debugging Lines
-			//uint8_t check[100];
-			//memset(check,'\0', sizeof(check));
-			//sprintf(check, "mx:%f, my:%f,mz:%f \r\n", mag_x,mag_y,mag_z);
-			//SendData(check, sizeof(check));
+			/*
+			Debugging Lines
+			uint8_t check[100];
+			memset(check,'\0', sizeof(check));
+			sprintf(check, "mx:%f, my:%f,mz:%f \r\n", mag_x,mag_y,mag_z);
+			SendData(check, sizeof(check));
+			*/
 		}
 	}
 
@@ -241,11 +243,13 @@ void read_gyro(void){
 	temp = ((int16_t)buf[4]<<8 | buf[5]);
 	gyro_z = (float)temp*gRes - gyroBias[2];
 
+	/*
 	//Debugging lines
-	//  uint8_t check[100];
-	//  memset(check,'\0', sizeof(check));
-	//  sprintf(check, "gx:%f, gy:%f,gz:%f \r\n", gyro_x,gyro_y,gyro_z);
-	//  SendData(check, sizeof(check));
+	uint8_t check[100];
+	memset(check,'\0', sizeof(check));
+	sprintf(check, "gx:%f, gy:%f,gz:%f \r\n", gyro_x,gyro_y,gyro_z);
+	SendData(check, sizeof(check));
+	*/
 	return;
 }
 
@@ -464,20 +468,8 @@ uint8_t checksum(uint8_t f8, uint8_t* data, size_t numBytes){
 
 void AHRS_Send(void){
 
-	madgwick(-1.0*gyro_y*PI/180.0,-1.0*gyro_x*PI/180.0, -1.0*gyro_z*PI/180.0,-1.0*acc_y,-1.0*acc_x,-1.0*acc_z,-1.0*mag_x,-1.0*mag_y, mag_z);
-	/*
-	float yaw, pitch, roll;
-	yaw   = atan2f(2.0 * (q1*q2 + q0*q3), q0*q0 + q1*q1 - q2*q2 - q3*q3);
-	pitch = -asinf(2.0f * (q1*q3 - q0*q2));
-	roll  = atan2f(2.0 * (q0*q1 + q2*q3), q0*q0 - q1*q1 - q2*q2 + q3*q3);
-	pitch *= 180.0f / PI;
-	yaw   *= 180.0f / PI;
-	roll  *= 180.0f / PI;
-	uint8_t buff[500];
-	memset(buff, '\0' , sizeof(buff));
-	sprintf(buff, "roll: %f pitch: %f yaw:%f \r\n", roll, pitch, yaw);
-	SendData(buff, sizeof(buff));
-	*/
+
+	madgwick(-1.0*gyro_y*PI/180.0,-1.0*gyro_x*PI/180.0, -1.0*gyro_z*PI/180.0,-1.0*acc_y,-1.*acc_x,acc_z,mag_x,mag_y, mag_z);
 
 	//Converts Float to bytes to send out via serial
 	Convertq0.q = q0;
@@ -491,39 +483,58 @@ void AHRS_Send(void){
 
 	buf[0] = 255;	//Start
 	buf[1] = 255;	//Start
-	buf[2] = 17;	//Number of Bytes more
+	buf[2] = 18;	//Number of Bytes more
 	buf[3] = 2;		//Instruction, not in use currently
 
-	buf[4] = Convertq0.bytes[3];
-	buf[5] = Convertq0.bytes[2];
-	buf[6] = Convertq0.bytes[1];
-	buf[7] = Convertq0.bytes[0];
+	buf[4] = Convertq0.bytes[0];
+	buf[5] = Convertq0.bytes[1];
+	buf[6] = Convertq0.bytes[2];
+	buf[7] = Convertq0.bytes[3];
 
-	buf[8] = Convertq1.bytes[3];
-	buf[9] = Convertq1.bytes[2];
-	buf[10] = Convertq1.bytes[1];
-	buf[11] = Convertq1.bytes[0];
+	buf[8] = Convertq1.bytes[0];
+	buf[9] = Convertq1.bytes[1];
+	buf[10] = Convertq1.bytes[2];
+	buf[11] = Convertq1.bytes[3];
 
-	buf[12] = Convertq2.bytes[3];
-	buf[13] = Convertq2.bytes[2];
-	buf[14] = Convertq2.bytes[1];
-	buf[15] = Convertq2.bytes[0];
+	buf[12] = Convertq2.bytes[0];
+	buf[13] = Convertq2.bytes[1];
+	buf[14] = Convertq2.bytes[2];
+	buf[15] = Convertq2.bytes[3];
 
-	buf[16] = Convertq3.bytes[3];
-	buf[17] = Convertq3.bytes[2];
-	buf[18] = Convertq3.bytes[1];
-	buf[19] = Convertq3.bytes[0];
+	buf[16] = Convertq3.bytes[0];
+	buf[17] = Convertq3.bytes[1];
+	buf[18] = Convertq3.bytes[2];
+	buf[19] = Convertq3.bytes[3];
 
-	buf[20] = checksum(1,buf,21);//Checksum, not in use currently
-
+	buf[20] = checksum(1,(buf+4),16);
 	SendData(buf, sizeof(buf));
+	/*
+	uint8_t buff[500];
+	memset(buff, '\0' , sizeof(buff));
+	sprintf(buff, "gx:%f gy: %f gz:%f ax:%f ay: %f az:%f mx:%f my: %f mz:%f \r\n", gyro_x, gyro_y, gyro_z,acc_x,acc_y,acc_z,mag_x,mag_y,mag_z);
+	SendData(buff, sizeof(buff));
+	float yaw, pitch, roll;
+	yaw   = atan2f(2.0 * (q1*q2 + q0*q3), q0*q0 + q1*q1 - q2*q2 - q3*q3);
+	pitch = -asinf(2.0f * (q1*q3 - q0*q2));
+	roll  = atan2f(2.0 * (q0*q1 + q2*q3), q0*q0 - q1*q1 - q2*q2 + q3*q3);
+	pitch *= 180.0f / PI;
+	yaw   *= 180.0f / PI;
+	roll  *= 180.0f / PI;
+	uint8_t buff[500];
+	memset(buff, '\0' , sizeof(buff));
+	sprintf(buff, "roll: %f pitch: %f yaw:%f \r\n", roll, pitch, yaw);
+	SendData(buff, sizeof(buff));
+	*/
 
+
+	/*
+			  (__)        		QUACK
+			  (oo)		QUACK
+	   /-------\/    			  QUACK
+	  / |     ||
+	 *  ||----||
+		^^    ^^
+	*/
 }
-/*
-		  (__)        		QUACK
-          (oo)		QUACK
-   /-------\/    			  QUACK
-  / |     ||
- *  ||----||
-    ^^    ^^
-*/
+
+

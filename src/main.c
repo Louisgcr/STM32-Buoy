@@ -81,11 +81,13 @@ int main(int argc, char* argv[]){
 	magMaxX = magMaxY = magMaxZ = magMinX = magMinY = magMinZ = 0.0;
 	while (1){
 
+
 		Ring_Buf_Get();
 		read_acc();
 		read_mag();
 		read_gyro();
 		AHRS_Send();
+
 		//run_mag_calibration();
 
 	}
