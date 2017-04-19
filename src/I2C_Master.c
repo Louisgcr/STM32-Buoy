@@ -32,12 +32,6 @@ void I2C_Master_Init(void)
   GPIO_InitTypeDef  GPIO_InitStructure;
   I2C_InitTypeDef  I2C_InitStructure;
 
-  /* I2C Periph clock enable */
-  RCC_APB1PeriphClockCmd(I2C_MEMS_CLK, ENABLE);
-
-  /* GPIO Periph clock enable */
-  RCC_APB2PeriphClockCmd(I2C_MEMS_GPIO_CLK, ENABLE);
-
   /* GPIO configuration */
   GPIO_InitStructure.GPIO_Pin =  I2C_MEMS_SCL | I2C_MEMS_SDA;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;

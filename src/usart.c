@@ -14,7 +14,7 @@ void initUsart(void){
 	USART_Cmd(USART1, ENABLE);
 
 	USART_InitTypeDef usartConfig;
-	usartConfig.USART_BaudRate = 115200;
+	usartConfig.USART_BaudRate = 57600;
 	usartConfig.USART_WordLength = USART_WordLength_8b;
 	usartConfig.USART_StopBits = USART_StopBits_1;
 	usartConfig.USART_Parity = USART_Parity_No;

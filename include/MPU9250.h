@@ -57,8 +57,8 @@ void getMres();
 
 //-------------------Madgwick Algorithm------------------------
 #define PI						3.14159265359
-#define sampleFreq	50.0f
-#define betaDef		1.8f		// 2 * proportional gain
+#define sampleFreq	100.0f
+#define betaDef		0.1f		// 2 * proportional gain
 
 char test;
 volatile float beta;

@@ -25,7 +25,7 @@
 #define buf_size 256
 #define max_msg_size 24
 #define min_msg_size 6
-
+#define delta 450
 #define CPU_CORE_FREQUENCY_HZ 72000000 /* CPU core frequency in Hz */
 
 //Global Variables
@@ -38,6 +38,7 @@ int newthrottle1, newthrottle2, newthrottle3;
 int USART1_IRQHandler(void);
 void Ring_Buf_Get(void);
 void interpret(void);
+void moveMotors(void);
 
 //Init functions sets all the Pins to the various mode
 int init(void){
@@ -47,10 +48,8 @@ int init(void){
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA |RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 | RCC_APB1Periph_I2C1, ENABLE);
 
-	//Configuration of PPM GPIO pins
-	PWM_Pin_Configuration();
-	//Configuration PPM for 72Mhz Clock
-	Tim_Config();
+	PWM_Pin_Configuration();//Configuration of PPM GPIO pins
+	Tim_Config();//Configuration PPM for 72Mhz Clock
 	initUsart();
 	I2C_Master_Init();
 	DelayInit();
@@ -69,10 +68,13 @@ int main(int argc, char* argv[]){
 	init_sensor();
 
 	//Keep track of throttle level
-	throttle1 = throttle2 = throttle3 = 0;
+	//throttle1 = throttle2 = throttle3 = 0;
 	newthrottle1 = newthrottle2 = newthrottle3 = 4500;
-	mov(throttle1,newthrottle1,throttle2,newthrottle2,throttle3,newthrottle3);
+	//mov(throttle1,newthrottle1,throttle2,newthrottle2,throttle3,newthrottle3);
 	throttle1 = throttle2 = throttle3 = 4500;
+	TIM3->CCR1=throttle1;
+	TIM3->CCR2=throttle2;
+	TIM3->CCR3=throttle3;
 
 	//Head and tail of ring buffer
 	head=0;
@@ -81,8 +83,8 @@ int main(int argc, char* argv[]){
 	magMaxX = magMaxY = magMaxZ = magMinX = magMinY = magMinZ = 0.0;
 	while (1){
 
-
 		Ring_Buf_Get();
+		moveMotors();
 		read_acc();
 		read_mag();
 		read_gyro();
@@ -92,6 +94,16 @@ int main(int argc, char* argv[]){
 
 	}
 }
+
+/*
+ * @Brief: Puts data into ring buffer
+ * Casting of tail and head is important as overflow is part of the design of how the ring buffer works.
+ * Example: If tail == 256 (overflowed), casting it will now make it 0 point to start of buffer.
+ *
+ * @param: None
+ * @return: 0 if no error & -1 if error
+ */
+
 
 int USART1_IRQHandler(void){
 	//If buffer is not full
@@ -107,6 +119,15 @@ int USART1_IRQHandler(void){
 
 }
 
+/*
+ * @Brief: Gets data from ring buffer if there is data present
+ * Casting of tail and head is important as overflow is part of the design of how the ring buffer works.
+ * Example: If tail == 256 (overflowed), casting it will now make it 0 point to start of buffer.
+ *
+ * @param: None
+ * @return: None
+ */
+
 void Ring_Buf_Get(void){
 
 	//offset here is only uint8_t as buffer size is cap at 256
@@ -118,7 +139,6 @@ void Ring_Buf_Get(void){
 	//If buffer is not empty
 	if((uint8_t)offset >= min_msg_size){
 		//Check if start condition is met
-
 		if(buffer[(uint8_t)tail] == 255 && buffer[(uint8_t)(tail+1)] == 255){//(uint8_t)offset > max_msg_size &&
 			//interpret instruction
 			//uint8_t test[18];
@@ -135,6 +155,13 @@ void Ring_Buf_Get(void){
 
 }
 
+/*
+ * @Brief: interpret checks what is the instruction type provided and interpret the data accordingly
+ * as of now, only instruction to move motor is available
+ * e.g. if it is 1, it is move motors. if it is 2, it could be put MCU to sleep
+ * @param: None
+ * @return: None
+ */
 
 void interpret(void){
 
@@ -144,16 +171,61 @@ void interpret(void){
 		newthrottle1 = buffer[(uint8_t)(tail+4)]<<8 | buffer[(uint8_t)(tail+5)];
 		newthrottle2 = buffer[(uint8_t)(tail+6)]<<8 | buffer[(uint8_t)(tail+7)];
 		newthrottle3 = buffer[(uint8_t)(tail+8)]<<8 | buffer[(uint8_t)(tail+9)];
-
-		mov(throttle1,newthrottle1,throttle2,newthrottle2,throttle3,newthrottle3);
-		throttle1 = newthrottle1;
-		throttle2 = newthrottle2;
-		throttle3 = newthrottle3;
+//
+//		mov(throttle1,newthrottle1,throttle2,newthrottle2,throttle3,newthrottle3);
+//		throttle1 = newthrottle1;
+//		throttle2 = newthrottle2;
+//		throttle3 = newthrottle3;
 
 	}
 	return;
 }
 
+/*
+ * @Brief: moveMotors tries to mimic an analog movement of a control stick. This is required
+ * to prevent LARGE discrete jumps of PPM signal that will cause motor controller to lose sync
+ * with controller(MCU).
+ * This is done by increasing PPM values with each time step.
+ *
+ * @param: None
+ * @return: None
+ */
+
+void moveMotors(void){
+
+	if(floor(abs(throttle1 - newthrottle1)/delta)){
+		if(throttle1 < newthrottle1){
+			throttle1 = throttle1 + delta;
+		}else{
+			throttle1 = throttle1 - delta;
+		}
+	}else{
+		throttle1 = newthrottle1;
+	}
+
+	if(floor(abs(throttle2 - newthrottle2)/delta)){
+			if(throttle2 < newthrottle2){
+				throttle2 = throttle2 + delta;
+			}else{
+				throttle2 = throttle2 - delta;
+			}
+		}else{
+			throttle2 = newthrottle2;
+	}
+	if(floor(abs(throttle3 - newthrottle3)/delta)){
+			if(throttle3 < newthrottle3){
+				throttle3 = throttle3 + delta;
+			}else{
+				throttle3 = throttle3 - delta;
+			}
+		}else{
+			throttle3 = newthrottle3;
+	}
+	TIM3->CCR1=throttle1;
+	TIM3->CCR2=throttle2;
+	TIM3->CCR3=throttle3;
+
+}
 #pragma GCC diagnostic pop
 
 // ----------------------------------------------------------------------------
