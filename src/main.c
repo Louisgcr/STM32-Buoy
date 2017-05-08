@@ -48,11 +48,20 @@ int init(void){
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA |RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 | RCC_APB1Periph_I2C1, ENABLE);
 
+
 	PWM_Pin_Configuration();//Configuration of PPM GPIO pins
 	Tim_Config();//Configuration PPM for 72Mhz Clock
 	initUsart();
-	I2C_Master_Init();
 	DelayInit();
+
+	//Software reset of I2C line, will be re-enabled in i2c init
+	DelayMs(100);
+	I2C_SoftwareResetCmd(I2C1, ENABLE);
+	I2C_SoftwareResetCmd(I2C1, DISABLE);
+	DelayMs(100);
+
+	I2C_Master_Init();
+
 
 	return 0;
 }
@@ -62,10 +71,11 @@ int main(int argc, char* argv[]){
 
 	//Low level initialization of pins
 	init();
-
 	//Enable Sensors
+
 	calibrate_sensor();
 	init_sensor();
+
 
 	//Keep track of throttle level
 	//throttle1 = throttle2 = throttle3 = 0;
@@ -75,6 +85,7 @@ int main(int argc, char* argv[]){
 	TIM3->CCR1=throttle1;
 	TIM3->CCR2=throttle2;
 	TIM3->CCR3=throttle3;
+
 
 	//Head and tail of ring buffer
 	head=0;
@@ -93,6 +104,7 @@ int main(int argc, char* argv[]){
 		//run_mag_calibration();
 
 	}
+
 }
 
 /*
@@ -171,6 +183,24 @@ void interpret(void){
 		newthrottle1 = buffer[(uint8_t)(tail+4)]<<8 | buffer[(uint8_t)(tail+5)];
 		newthrottle2 = buffer[(uint8_t)(tail+6)]<<8 | buffer[(uint8_t)(tail+7)];
 		newthrottle3 = buffer[(uint8_t)(tail+8)]<<8 | buffer[(uint8_t)(tail+9)];
+		if (newthrottle1 > 6000){
+					newthrottle1 = 6000;
+				}
+				if (newthrottle2 > 6000){
+					newthrottle2 = 6000;
+				}
+				if (newthrottle3 > 6000){
+					newthrottle3 = 6000;
+				}
+				if (newthrottle1 < 3000){
+					newthrottle1 = 3000;
+				}
+				if (newthrottle2 < 3000){
+					newthrottle2 = 3000;
+				}
+				if (newthrottle3 < 3000){
+					newthrottle3 = 3000;
+				}
 //
 //		mov(throttle1,newthrottle1,throttle2,newthrottle2,throttle3,newthrottle3);
 //		throttle1 = newthrottle1;

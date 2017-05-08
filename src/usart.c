@@ -11,8 +11,6 @@
 
 void initUsart(void){
 
-	USART_Cmd(USART1, ENABLE);
-
 	USART_InitTypeDef usartConfig;
 	usartConfig.USART_BaudRate = 57600;
 	usartConfig.USART_WordLength = USART_WordLength_8b;
@@ -21,9 +19,10 @@ void initUsart(void){
 	usartConfig.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 	usartConfig.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 	USART_Init(USART1, &usartConfig);
+	USART_Cmd(USART1, ENABLE);
 
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
-    /* Enable USART1 global interrupt */
+    /* Enable USART1 global interrupt*/
     NVIC_EnableIRQ(USART1_IRQn);
 
 	GPIO_InitTypeDef GPIO_InitStructure;

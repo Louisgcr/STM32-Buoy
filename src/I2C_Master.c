@@ -41,15 +41,16 @@ void I2C_Master_Init(void)
    /* I2C configuration */
   I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
   I2C_InitStructure.I2C_DutyCycle = I2C_DutyCycle_2;
-  I2C_InitStructure.I2C_OwnAddress1 = I2C_SLAVE_ADDRESS7;
+  //I2C_InitStructure.I2C_OwnAddress1 = I2C_SLAVE_ADDRESS7;
   I2C_InitStructure.I2C_Ack = I2C_Ack_Enable;
   I2C_InitStructure.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
   I2C_InitStructure.I2C_ClockSpeed = I2C_Speed;
 
+  /* Apply I2C configuration */
+  I2C_Init(I2C_MEMS, &I2C_InitStructure);
+
   /* I2C Peripheral Enable */
   I2C_Cmd(I2C_MEMS, ENABLE);
-  /* Apply I2C configuration after enabling it */
-  I2C_Init(I2C_MEMS, &I2C_InitStructure);
 }
 
 void I2C_Master_DeInit(void)
@@ -63,7 +64,6 @@ void I2C_Master_DeInit(void)
 
   /* UnConfigure I2C_MEMS pins: SCL and SDA */
   GPIO_InitStructure.GPIO_Pin = I2C_MEMS_SCL | I2C_MEMS_SDA;
-  //GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;// Sets GPIO to internal Pull Up
   GPIO_Init(I2C_MEMS_GPIO, &GPIO_InitStructure);
 
